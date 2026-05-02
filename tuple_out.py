@@ -1,4 +1,9 @@
 import numpy as np
+import json
+import os
+from datetime import datetime
+
+HISTORY_FILE = "game_history.json"
 
 # Player class to keep track of each player's name and score
 class Player:
@@ -96,6 +101,49 @@ def print_scores(players):
         print(f"  {p.name}: {p.total_score} points")
 
 
+def save_game(players, winner):
+    # load existing history first
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r") as f:
+                history = json.load(f)
+        except json.JSONDecodeError:
+            history = []
+
+    # build a record for this game
+    game_record = {
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "winner": winner.name,
+        "scores": {}
+    }
+    for p in players:
+        game_record["scores"][p.name] = {
+            "total": p.total_score,
+            "turns": p.turn_scores
+        }
+
+    history.append(game_record)
+
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f, indent=2)
+    print("Game saved!")
+
+
+def show_history():
+    if not os.path.exists(HISTORY_FILE):
+        print("No games have been played yet.")
+        return
+
+    with open(HISTORY_FILE, "r") as f:
+        history = json.load(f)
+
+    print(f"\n--- Game History ({len(history)} games played) ---")
+    for i in range(len(history)):
+        game = history[i]
+        print(f"  Game {i + 1}: {game['date']}  |  Winner: {game['winner']}")
+
+
 def play_game():
     print("\n=== New Game of Tuple Out ===")
 
@@ -144,6 +192,7 @@ def play_game():
             winner = p
 
     print(f"\n{winner.name} wins with {winner.total_score} points!")
+    save_game(players, winner)
 
 
 def main():
@@ -153,17 +202,20 @@ def main():
     while True:
         print("Menu:")
         print("1. Play a game")
-        print("2. Quit")
+        print("2. View game history")
+        print("3. Quit")
 
         choice = input("Choose an option: ").strip()
 
         if choice == "1":
             play_game()
         elif choice == "2":
+            show_history()
+        elif choice == "3":
             print("Goodbye!")
             break
         else:
-            print("Invalid option, please enter 1 or 2.")
+            print("Invalid option, please try again.")
 
 
 if __name__ == "__main__":
