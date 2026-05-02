@@ -179,7 +179,10 @@ def show_chart():
     plt.ylabel("Average Score")
     plt.savefig("score_chart.png")
     print("Chart saved as score_chart.png")
-    plt.show()
+    try:
+        plt.show()
+    except KeyboardInterrupt:
+        pass
 
 
 def play_game():
