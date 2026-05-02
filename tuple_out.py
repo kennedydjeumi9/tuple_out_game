@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 import json
 import os
 from datetime import datetime
@@ -144,6 +147,41 @@ def show_history():
         print(f"  Game {i + 1}: {game['date']}  |  Winner: {game['winner']}")
 
 
+def show_chart():
+    if not os.path.exists(HISTORY_FILE):
+        print("No game history to show.")
+        return
+
+    with open(HISTORY_FILE, "r") as f:
+        history = json.load(f)
+
+    # build a list of rows to put into a dataframe
+    rows = []
+    for game_num in range(len(history)):
+        game = history[game_num]
+        for player_name in game["scores"]:
+            turn_list = game["scores"][player_name]["turns"]
+            for turn_num in range(len(turn_list)):
+                rows.append({
+                    "game": game_num + 1,
+                    "player": player_name,
+                    "turn": turn_num + 1,
+                    "score": turn_list[turn_num]
+                })
+
+    df = pd.DataFrame(rows)
+
+    # create a bar chart using seaborn showing average score per player
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x="player", y="score", estimator="mean", errorbar=None)
+    plt.title("Average Points Per Turn by Player")
+    plt.xlabel("Player")
+    plt.ylabel("Average Score")
+    plt.savefig("score_chart.png")
+    print("Chart saved as score_chart.png")
+    plt.show()
+
+
 def play_game():
     print("\n=== New Game of Tuple Out ===")
 
@@ -203,7 +241,8 @@ def main():
         print("Menu:")
         print("1. Play a game")
         print("2. View game history")
-        print("3. Quit")
+        print("3. View score chart")
+        print("4. Quit")
 
         choice = input("Choose an option: ").strip()
 
@@ -212,6 +251,8 @@ def main():
         elif choice == "2":
             show_history()
         elif choice == "3":
+            show_chart()
+        elif choice == "4":
             print("Goodbye!")
             break
         else:
