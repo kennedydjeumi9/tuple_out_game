@@ -45,9 +45,59 @@ def display_dice(dice):
     print(output)
 
 
+def player_turn(player):
+    print(f"\n{player.name}'s turn!")
+    input("Press Enter to roll...")
+
+    dice = roll_dice()
+    display_dice(dice)
+
+    # if all three dice are the same right away, tuple out
+    if all_same(dice):
+        print("TUPLE OUT! You score 0 points this turn.")
+        return 0
+
+    # keep letting the player reroll until they stop or tuple out
+    while True:
+        fixed = get_fixed(dice)
+        free = []
+        for i in range(3):
+            if i not in fixed:
+                free.append(i)
+
+        if len(free) == 0:
+            print("All dice are fixed, turn is over.")
+            break
+
+        answer = input("Reroll free dice? (y/n): ").strip().lower()
+        if answer != "y":
+            break
+
+        # reroll only the free dice
+        new_rolls = np.random.randint(1, 7, size=len(free))
+        for i in range(len(free)):
+            dice[free[i]] = int(new_rolls[i])
+
+        display_dice(dice)
+
+        # check for tuple out after rerolling
+        if all_same(dice):
+            print("TUPLE OUT! You score 0 points this turn.")
+            return 0
+
+    points = sum(dice)
+    print(f"  {player.name} scores {points} points this turn!")
+    return points
+
+
+def print_scores(players):
+    print("\nCurrent Scores:")
+    for p in players:
+        print(f"  {p.name}: {p.total_score} points")
+
+
 if __name__ == "__main__":
-    # quick test
-    d = roll_dice()
-    print("rolled:", d)
-    display_dice(d)
-    print("tuple out:", all_same(d))
+    p = Player("Test")
+    pts = player_turn(p)
+    p.add_score(pts)
+    print("Total:", p.total_score)
